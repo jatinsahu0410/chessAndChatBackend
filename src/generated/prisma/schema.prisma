@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String    @id @default(cuid())
+  clerkId     String    @unique
+  username    String?
+  fullName    String?
+  email       String?
+  avatarUrl   String?
+  eloRating   Int       @default(1000)
+  wins        Int       @default(0)
+  losses      Int       @default(0)
+  draws       Int       @default(0)
+  gamesPlayed Int       @default(0)
+  level       UserLevel @default(NEW)
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  gamesAsPlayer1 Game[]        @relation("Player1")
+  gamesAsPlayer2 Game[]        @relation("Player2")
+  chatMessages   ChatMessage[]
+}
+
+model Game {
+  id         String        @id @default(cuid())
+  gameType   GameType      @default(RANDOM)
+  rated      Boolean       @default(true)
+  difficulty AIDifficulty?
+  status     GameStatus    @default(PENDING)
+  result     GameResult?
+  winnerId   String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  // Players (can be user or guest)
+  player1UserId    String?
+  player2UserId    String?
+  player1GuestName String?
+  player2GuestName String?
+
+  player1User User? @relation("Player1", fields: [player1UserId], references: [id])
+  player2User User? @relation("Player2", fields: [player2UserId], references: [id])
+
+  // Relations
+  moves        GameMove[]
+  chatMessages ChatMessage[]
+}
+
+model GameMove {
+  id         String   @id @default(cuid())
+  gameId     String
+  move       String // e.g. e2e4, g1f3
+  moveNumber Int
+  createdAt  DateTime @default(now())
+
+  game Game @relation(fields: [gameId], references: [id])
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  gameId     String
+  senderId   String? // user ID if from registered user
+  senderName String? // fallback if from guest
+  message    String
+  createdAt  DateTime @default(now())
+
+  game   Game  @relation(fields: [gameId], references: [id])
+  sender User? @relation(fields: [senderId], references: [id])
+}
+
+enum GameType {
+  RANDOM
+  PRIVATE
+  AI
+}
+
+enum AIDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum GameStatus {
+  PENDING
+  ONGOING
+  COMPLETED
+  ABANDONED
+}
+
+enum GameResult {
+  WIN
+  LOSS
+  DRAW
+  ABANDONED
+}
+
+enum UserLevel {
+  NEW // <1000
+  BEGINNER // 1000–1199
+  INTERMEDIATE // 1200–1599
+  ADVANCED // 1600–1999
+  EXPERT // 2000–2199
+  MASTER // 2200–2399
+  GRANDMASTER // 2400+
+}
