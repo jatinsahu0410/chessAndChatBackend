@@ -27,6 +27,7 @@ export const syncUserIfNeeded = async (clerkUserId: string) => {
       clerkId: clerkUser.id,
       email: clerkUser.emailAddresses[0]?.emailAddress ?? "",
       fullName: `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim(),
+      username: clerkUser.username ?? "",
       avatarUrl: clerkUser.imageUrl,
     },
   });

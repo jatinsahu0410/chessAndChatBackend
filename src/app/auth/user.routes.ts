@@ -4,9 +4,12 @@ import { syncUserIfNeeded } from "./clerk";
 
 const router = Router();
 
-router.get("/me", requireAuth(), async (req: Request, res: Response): Promise<void> => {
+router.get('/sync', async (req: Request, res: Response): Promise<void> => {
+    console.log("GET /me called");
+    console.log("Request Headers:", req.headers);
     try {
         const { userId } = getAuth(req);
+        console.log("The user is ", userId);
         if (!userId) {
             res.status(401).json({ error: "Unauthorized" });
             return;
@@ -18,6 +21,10 @@ router.get("/me", requireAuth(), async (req: Request, res: Response): Promise<vo
         console.error("Error in /me route:", err);
         res.status(500).json({ error: "Internal Server Error" });
     }
+});
+
+router.get('/ys', (req: Request, res: Response) => {
+    res.status(200).json({ message: 'ys call successful!' });
 });
 
 export const userRouter = router;
